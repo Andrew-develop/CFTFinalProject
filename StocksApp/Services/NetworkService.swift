@@ -78,6 +78,6 @@ extension NetworkService: INetworkService {
                     completion(.success(result))
                 }
             }
-        }
+        }.resume()
     }
 }
