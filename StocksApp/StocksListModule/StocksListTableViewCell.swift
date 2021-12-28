@@ -8,30 +8,24 @@
 import UIKit
 
 protocol IStocksListTableViewCell {
-    func config(stockInfo: StockBaseInfo, number: Int)
-    func setImage(data: Data)
+    func config(stockInfo: StockShortInfo, number: Int)
 }
 
 final class StocksListTableViewCell: UITableViewCell {
     
-    static let cellID = String(describing: StocksListTableViewCell.self)
-    
-    private lazy var logo: UIImageView = {
-        let logo = UIImageView()
-        logo.translatesAutoresizingMaskIntoConstraints = false
-        logo.contentMode = .scaleAspectFit
-        return logo
-    }()
+    static let cellID = String(describing: self)
     
     private lazy var tickerLabel: UILabel = {
         let tickerLabel = UILabel()
         tickerLabel.translatesAutoresizingMaskIntoConstraints = false
+        tickerLabel.font = UIFont(name: "Inter-Bold", size: 18)
         return tickerLabel
     }()
     
     private lazy var nameLabel: UILabel = {
         let nameLabel = UILabel()
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
+        nameLabel.font = UIFont(name: "Inter-Regular", size: 14)
         return nameLabel
     }()
     
@@ -47,11 +41,7 @@ final class StocksListTableViewCell: UITableViewCell {
 
 extension StocksListTableViewCell: IStocksListTableViewCell {
     
-    func setImage(data: Data) {
-        self.logo.image = UIImage(data: data)
-    }
-    
-    func config(stockInfo: StockBaseInfo, number: Int) {
+    func config(stockInfo: StockShortInfo, number: Int) {
         self.clearCell()
         self.fillView(stockInfo: stockInfo)
         self.setBackgroundColor(number: number)
@@ -61,12 +51,11 @@ extension StocksListTableViewCell: IStocksListTableViewCell {
 private extension StocksListTableViewCell {
     
     private func clearCell() {
-        self.logo.image = nil
         self.tickerLabel.text = nil
         self.nameLabel.text = nil
     }
     
-    private func fillView(stockInfo: StockBaseInfo) {
+    private func fillView(stockInfo: StockShortInfo) {
         self.tickerLabel.text = stockInfo.ticker
         self.nameLabel.text = stockInfo.companyName
     }
@@ -81,25 +70,14 @@ private extension StocksListTableViewCell {
     }
     
     private func setupConstraints() {
-        self.constraintLogo()
         self.constraintTickerLabel()
         self.constraintNameLabel()
-    }
-    
-    private func constraintLogo() {
-        contentView.addSubview(logo)
-        NSLayoutConstraint.activate([
-            self.logo.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 8),
-            self.logo.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 8),
-            self.logo.heightAnchor.constraint(equalToConstant: 52),
-            self.logo.widthAnchor.constraint(equalToConstant: 52)
-        ])
     }
     
     private func constraintTickerLabel() {
         self.contentView.addSubview(tickerLabel)
         NSLayoutConstraint.activate([
-            self.tickerLabel.leadingAnchor.constraint(equalTo: self.logo.trailingAnchor, constant: 12),
+            self.tickerLabel.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 8),
             self.tickerLabel.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -12),
             self.tickerLabel.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 14),
             self.tickerLabel.heightAnchor.constraint(equalToConstant: 24)
@@ -109,7 +87,7 @@ private extension StocksListTableViewCell {
     private func constraintNameLabel() {
         self.contentView.addSubview(nameLabel)
         NSLayoutConstraint.activate([
-            self.nameLabel.leadingAnchor.constraint(equalTo: self.logo.trailingAnchor, constant: 12),
+            self.nameLabel.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 8),
             self.nameLabel.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -12),
             self.nameLabel.topAnchor.constraint(equalTo: self.tickerLabel.bottomAnchor),
             self.nameLabel.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -14)

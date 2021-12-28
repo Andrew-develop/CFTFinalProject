@@ -45,6 +45,7 @@ extension StocksListPresenter: IStocksListPresenter {
     
     func onViewReady() {
         self.interactor.getStocks()
+        self.stocksListView?.showIndicator()
     }
 }
 
@@ -59,28 +60,21 @@ private extension StocksListPresenter {
             }
         }
         
+        self.stocksListView?.onSearchTextEmpty = { [weak self] in
+            self?.interactor.getStocks()
+        }
+        
         self.stocksListView?.numberOfStocks = { [weak self] in
             self?.interactor.numberOfItems
         }
         
         self.stocksListView?.getStockInfo = { [weak self] index in
-            guard let crudeStock = self?.interactor.getStockInfo(index: index) else { return nil }
-            let goodStock = StockBaseInfo(
-                ticker: crudeStock.ticker,
-                companyName: crudeStock.name,
-                logo: crudeStock.logo
+            guard let crudeStock = self?.interactor.getStock(index: index) else { return nil }
+            let goodStock = StockShortInfo(
+                ticker: crudeStock.symbol,
+                companyName: crudeStock.welcomeDescription
             )
             return goodStock
-        }
-        
-        self.stocksListView?.onLogoUpdate = { [weak self] url, path in
-            self?.interactor.getLogo(url: url)
-            self?.interactor.onLoadImage = { [weak self] data in
-                DispatchQueue.main.async {
-                    self?.stocksListView?.setImage(data: data, path: path)
-                    self?.stocksListView?.update()
-                }
-            }
         }
         
         self.stocksListView?.onSelectCell = { [weak self] index in
@@ -97,5 +91,8 @@ private extension StocksListPresenter {
     }
     
     private func makeNextModule(index: Int) {
+        let stock = self.interactor.getStock(index: index)
+        let nextVC = StockInfoAssembly.build(ticker: stock.symbol)
+        self.router.setTargetController(controller: nextVC)
     }
 }

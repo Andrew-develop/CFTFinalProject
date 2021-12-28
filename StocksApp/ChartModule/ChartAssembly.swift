@@ -1,41 +1,37 @@
 //
-//  StocksListAssembly.swift
+//  ChartAssembly.swift
 //  StocksApp
 //
-//  Created by Sergio Ramos on 26.12.2021.
+//  Created by Sergio Ramos on 28.12.2021.
 //
 
 import Foundation
 
-final class StocksListAssembly {
+final class ChartAssembly {
     
-    static func build() -> StocksListViewController {
+    static func build(ticker: String) -> ChartViewController {
         
         let networkService = NetworkService()
         let dialogManager = DialogManager()
-        let router = Router()
         
-        let interactor = StocksListInteractor(
+        let interactor = ChartInteractor(
             dependencies: .init(
                         networkService: networkService,
                         dialogManager: dialogManager
-            ))
+            ), ticker: ticker)
         
-        let presenter = StocksListPresenter(
+        let presenter = ChartPresenter(
             dependencies: .init(
-                interactor: interactor,
-                router: router
+                interactor: interactor
             ))
 
-        let controller = StocksListViewController(
+        let controller = ChartViewController(
             dependencies: .init(
                 presenter: presenter
             ))
 
-        router.setRootController(controller: controller)
         dialogManager.setController(controller: controller)
         presenter.setController(controller: controller)
-        interactor.setPresenter(presenter: presenter)
         
         return controller
     }

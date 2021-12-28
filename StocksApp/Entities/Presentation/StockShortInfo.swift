@@ -8,8 +8,7 @@
 import Foundation
 import UIKit
 
-struct StockBaseInfo {
+struct StockShortInfo {
     let ticker: String
     let companyName: String
-    let logo: String
 }

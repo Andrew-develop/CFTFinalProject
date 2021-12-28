@@ -10,22 +10,22 @@ import UIKit
 protocol IStocksListView: UIView {
     
     var onTouchSearchButton: ((String) -> Void)? { get set }
+    var onSearchTextEmpty: (() -> Void)? { get set }
     var onSelectCell: ((Int) -> Void)? { get set }
     var numberOfStocks: (() -> Int?)? { get set }
-    var getStockInfo: ((Int) -> StockBaseInfo?)? { get set }
-    var onLogoUpdate: ((String, IndexPath) -> Void)? { get set }
+    var getStockInfo: ((Int) -> StockShortInfo?)? { get set }
 
     func update()
-    func setImage(data: Data, path: IndexPath)
+    func showIndicator()
 }
 
 final class StocksListView: UIView {
     
     var onTouchSearchButton: ((String) -> Void)?
+    var onSearchTextEmpty: (() -> Void)?
     var onSelectCell: ((Int) -> Void)?
     var numberOfStocks: (() -> Int?)?
-    var getStockInfo: ((Int) -> StockBaseInfo?)?
-    var onLogoUpdate: ((String, IndexPath) -> Void)?
+    var getStockInfo: ((Int) -> StockShortInfo?)?
     
     private lazy var searchBar: UISearchBar = {
         let searchBar = UISearchBar()
@@ -33,9 +33,10 @@ final class StocksListView: UIView {
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         searchBar.placeholder = "Find company or ticker"
         searchBar.searchBarStyle = .minimal
-        searchBar.layer.borderWidth = 1
+        searchBar.searchTextField.borderStyle = .none
+        searchBar.layer.borderWidth = 0.33
         searchBar.layer.borderColor = UIColor.black.cgColor
-        searchBar.layer.cornerRadius = searchBar.bounds.height * 0.4
+        searchBar.layer.cornerRadius = 16
         return searchBar
     }()
     
@@ -45,8 +46,16 @@ final class StocksListView: UIView {
         tableView.dataSource = self
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.register(StocksListTableViewCell.self, forCellReuseIdentifier: StocksListTableViewCell.cellID)
-        tableView.allowsSelection = false
+        tableView.backgroundColor = .white
+        tableView.showsVerticalScrollIndicator = false
+        tableView.showsHorizontalScrollIndicator = false
         return tableView
+    }()
+    
+    private lazy var activityIndicator: UIActivityIndicatorView = {
+        let activityIndicator = UIActivityIndicatorView(style: .large)
+        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
+        return activityIndicator
     }()
     
     lazy var tapRecognizer: UITapGestureRecognizer = {
@@ -66,13 +75,13 @@ final class StocksListView: UIView {
 
 extension StocksListView: IStocksListView {
     
-    func setImage(data: Data, path: IndexPath) {
-        let cell = self.tableView.cellForRow(at: path) as? StocksListTableViewCell
-        cell?.setImage(data: data)
+    func update() {
+        self.activityIndicator.stopAnimating()
+        self.tableView.reloadData()
     }
     
-    func update() {
-        self.tableView.reloadData()
+    func showIndicator() {
+        self.activityIndicator.startAnimating()
     }
 }
 
@@ -86,6 +95,7 @@ private extension StocksListView {
         self.backgroundColor = .white
         self.constraintSearchBar()
         self.constraintTableView()
+        self.constraintActivityIndicator()
     }
     
     private func constraintSearchBar() {
@@ -107,6 +117,14 @@ private extension StocksListView {
             self.tableView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
     }
+    
+    private func constraintActivityIndicator() {
+        self.addSubview(activityIndicator)
+        NSLayoutConstraint.activate([
+            self.activityIndicator.centerXAnchor.constraint(equalTo: self.centerXAnchor),
+            self.activityIndicator.centerYAnchor.constraint(equalTo: self.centerYAnchor)
+        ])
+    }
 }
 
 extension StocksListView: UISearchBarDelegate {
@@ -117,8 +135,10 @@ extension StocksListView: UISearchBarDelegate {
         self.onTouchSearchButton?(text)
     }
     
-    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        searchBar.text = nil
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchText.isEmpty {
+            self.onSearchTextEmpty?()
+        }
     }
     
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
@@ -155,7 +175,6 @@ extension StocksListView: UITableViewDataSource {
         }
         
         if let stockInfo = self.getStockInfo?(indexPath.row) {
-            self.onLogoUpdate?(stockInfo.logo, indexPath)
             cell.config(stockInfo: stockInfo, number: indexPath.row)
         }
         

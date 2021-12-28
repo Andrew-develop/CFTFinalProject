@@ -37,7 +37,6 @@ final class StocksListViewController: UIViewController {
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        self.navigationItem.title = "Stocks"
         self.view.addSubview(stocksListView)
     }
 
